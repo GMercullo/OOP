@@ -7,20 +7,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-public class Employee {
+public class EmployeeRepository {
 
-    public Employee() {
+    private Map<Integer, EmployeeData> employeeMap = new HashMap<>();
+    private String filePath;
+
+    public EmployeeRepository() {
         this.employeeMap = new HashMap<>();
     }
 
-    public Employee(String filePath) {
+    public EmployeeRepository(String filePath) {
         this.employeeMap = new HashMap<>();
         this.filePath = filePath;
         loadEmployeesFromCSV(filePath);
     }
-
-    private Map<Integer, EmployeeData> employeeMap = new HashMap<>();
-    private String filePath;
 
     public void loadEmployeesFromCSV(String filePath) {
         this.filePath = filePath;
@@ -30,7 +30,6 @@ public class Employee {
 
             while ((tokens = reader.readNext()) != null) {
                 if (tokens.length < 19) {
-                    System.out.println("Skipping line (too few columns): " + Arrays.toString(tokens));
                     continue;
                 }
 
@@ -38,10 +37,8 @@ public class Employee {
                     EmployeeData emp = CSVHandler.parseEmployeeRow(tokens);
                     if (emp != null) {
                         employeeMap.put(emp.getEmployeeId(), emp);
-                        System.out.println("Loaded employee ID: " + emp.getEmployeeId());
                     }
                 } catch (Exception ex) {
-                    System.out.println("Skipping line due to parsing error: " + ex.getMessage());
                 }
             }
         } catch (IOException | CsvValidationException e) {
@@ -71,39 +68,30 @@ public class Employee {
     }
 
     public void addEmployee(EmployeeData newEmp) {
-        if (employeeMap.containsKey(newEmp.getEmployeeId())) {
-            System.out.println("Employee ID already exists: " + newEmp.getEmployeeId());
-        } else {
+        if (!employeeMap.containsKey(newEmp.getEmployeeId())) {
             employeeMap.put(newEmp.getEmployeeId(), newEmp);
-            System.out.println("Added new employee: " + newEmp.getEmployeeId());
         }
     }
 
     public void updateEmployee(int id, EmployeeData updatedEmp) {
         if (employeeMap.containsKey(id)) {
             employeeMap.put(id, updatedEmp);
-            System.out.println("Updated employee ID: " + id);
             try {
                 CSVHandler.saveEmployeeToCSV(filePath, getAllEmployees());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("Employee ID not found: " + id);
         }
     }
 
     public void deleteEmployee(int id) {
         if (employeeMap.containsKey(id)) {
             employeeMap.remove(id);
-            System.out.println("Deleted employee ID: " + id);
             try {
                 CSVHandler.saveEmployeeToCSV(filePath, getAllEmployees());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("Employee ID not found: " + id);
         }
     }
 
