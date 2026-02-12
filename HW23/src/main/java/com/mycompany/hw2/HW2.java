@@ -1,6 +1,7 @@
 package com.mycompany.hw2;
 
-// Author: gmmercullo
+
+//Author: gmmercullo
 
 import com.mycompany.hw2.model.*;
 
@@ -20,27 +21,25 @@ public class HW2 extends JFrame {
 
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private Employee employeeManager;
+    private EmployeeRepository employeeRepository;
     private final DecimalFormat money = new DecimalFormat("\u20b1#,##0.00");
     private String role;
-
-
     private String loggedInUsername;
 
     public HW2(String userRole, String username) {
         this.role = userRole;
         this.loggedInUsername = username;
         setTitle("MotorPH Payroll System - Logged in as " + role);
-            if (!role.equalsIgnoreCase("EMPLOYEE")) {
-                setSize(500, 400);
-            } else {
-                setSize(1200, 600);
-            }
+        if (!role.equalsIgnoreCase("EMPLOYEE")) {
+            setSize(500, 400);
+        } else {
+            setSize(1200, 600);
+        }
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        employeeManager = new Employee();
-        employeeManager.loadEmployeesFromCSV("src/MotorPH Employee Data - Employee Details.csv");
+        employeeRepository = new EmployeeRepository();
+        employeeRepository.loadEmployeesFromCSV("src/MotorPH Employee Data - Employee Details.csv");
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -130,8 +129,9 @@ public class HW2 extends JFrame {
 
         JButton backButton = new JButton("Back to Home");
         backButton.addActionListener(e -> {
-                setSize(500, 400);
-                cardLayout.show(mainPanel, "home");});
+            setSize(500, 400);
+            cardLayout.show(mainPanel, "home");
+        });
         topPanel.add(backButton, BorderLayout.WEST);
 
         JButton newEmployeeButton = new JButton("Add New Employee");
@@ -140,12 +140,11 @@ public class HW2 extends JFrame {
             dialog.setVisible(true);
             EmployeeData newEmp = dialog.getNewEmployee();
             if (newEmp != null) {
-                employeeManager.addEmployee(newEmp);
+                employeeRepository.addEmployee(newEmp);
                 try {
                     CSVHandler.appendEmployeeToCSV("src/MotorPH Employee Data - Employee Details.csv", newEmp);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Error saving employee: " + ex.getMessage());
-                    ex.printStackTrace();
                 }
                 JOptionPane.showMessageDialog(this, "Employee added!");
                 refreshAllEmployeePanel();
@@ -163,7 +162,7 @@ public class HW2 extends JFrame {
         tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
         tablePanel.add(createTableHeader());
 
-        List<EmployeeData> employees = employeeManager.getAllEmployees();
+        List<EmployeeData> employees = employeeRepository.getAllEmployees();
         for (EmployeeData emp : employees) {
             tablePanel.add(createEmployeeRow(emp));
         }
@@ -177,7 +176,7 @@ public class HW2 extends JFrame {
     private JPanel createTableHeader() {
         JPanel header = new JPanel(new GridLayout(1, 8));
         header.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
-        String[] labels = { "Employee #", "Last Name", "First Name", "SSS #", "PhilHealth #", "TIN #", "Pag-IBIG #", "" };
+        String[] labels = {"Employee #", "Last Name", "First Name", "SSS #", "PhilHealth #", "TIN #", "Pag-IBIG #", ""};
         for (String label : labels) {
             JLabel lbl = new JLabel(label, SwingConstants.CENTER);
             lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
@@ -211,7 +210,7 @@ public class HW2 extends JFrame {
             dialog.setVisible(true);
             EmployeeData updated = dialog.getNewEmployee();
             if (updated != null) {
-                employeeManager.updateEmployee(updated.getEmployeeId(), updated);
+                employeeRepository.updateEmployee(updated.getEmployeeId(), updated);
                 JOptionPane.showMessageDialog(this, "Employee updated!");
                 refreshAllEmployeePanel();
             }
@@ -221,7 +220,7 @@ public class HW2 extends JFrame {
         deleteButton.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                employeeManager.deleteEmployee(emp.getEmployeeId());
+                employeeRepository.deleteEmployee(emp.getEmployeeId());
                 JOptionPane.showMessageDialog(this, "Employee deleted!");
                 refreshAllEmployeePanel();
             }
@@ -306,7 +305,7 @@ public class HW2 extends JFrame {
             int monthIndex = monthCombo.getSelectedIndex() + 1;
             int year = (int) yearCombo.getSelectedItem();
             String monthFormatted = String.format("%02d-%d", monthIndex, year);
-            if (monthExistsInAttendance(emp.getEmployeeId(), monthFormatted)) {
+            if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
                 PayrollCalc(emp, monthFormatted);
             } else {
                 JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
@@ -314,16 +313,10 @@ public class HW2 extends JFrame {
         }
     }
 
-    private boolean monthExistsInAttendance(int employeeId, String month) {
-        return new Attendance().hasAttendanceForMonth(employeeId, month);
-    }
-
-
     public static void displayPayrollReport(PayrollReport reportPanel) {
         JScrollPane scrollPane = new JScrollPane(reportPanel);
         JOptionPane.showMessageDialog(null, scrollPane, "Payroll Report", JOptionPane.INFORMATION_MESSAGE);
     }
-
 
     private void showEmployeeInfoReadOnly(EmployeeData emp) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy");
@@ -380,7 +373,7 @@ public class HW2 extends JFrame {
         if (input != null && !input.trim().isEmpty()) {
             try {
                 int empId = Integer.parseInt(input.trim());
-                EmployeeData emp = employeeManager.findById(empId);
+                EmployeeData emp = employeeRepository.findById(empId);
                 if (emp != null) {
                     showEmployeeInfoReadOnly(emp);
                 } else {
@@ -393,19 +386,17 @@ public class HW2 extends JFrame {
     }
 
     private void showSearchPayCoverageDialog() {
-
         String inputId = JOptionPane.showInputDialog(this, "Enter Employee ID:");
         if (inputId == null || inputId.trim().isEmpty()) return;
 
         try {
             int empId = Integer.parseInt(inputId.trim());
-            EmployeeData emp = employeeManager.findById(empId);
+            EmployeeData emp = employeeRepository.findById(empId);
 
             if (emp == null) {
                 JOptionPane.showMessageDialog(this, "Employee not found.");
                 return;
             }
-
 
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             String[] monthNames = new java.text.DateFormatSymbols().getMonths();
@@ -427,29 +418,25 @@ public class HW2 extends JFrame {
                 int year = (int) yearCombo.getSelectedItem();
                 String monthFormatted = String.format("%02d-%d", monthIndex, year);
 
-                if (monthExistsInAttendance(emp.getEmployeeId(), monthFormatted)) {
+                if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
                     PayrollCalc(emp, monthFormatted);
                 } else {
                     JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
                 }
             }
-
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Invalid employee ID. Please enter a valin number.");
         }
     }
 
     private void showFileLeaveDialog() {
-
-        EmployeeData loggedEmp = employeeManager.findByName(loggedInUsername);
+        EmployeeData loggedEmp = employeeRepository.findByName(loggedInUsername);
 
         if (loggedEmp == null) {
-            List<EmployeeData> allEmps = employeeManager.getAllEmployees();
+            List<EmployeeData> allEmps = employeeRepository.getAllEmployees();
             for (EmployeeData emp : allEmps) {
                 String empName = emp.getFullName().toLowerCase();
                 String loginName = loggedInUsername.toLowerCase();
-
-
                 if (empName.contains(loginName) || loginName.contains(empName)) {
                     loggedEmp = emp;
                     break;
@@ -458,32 +445,21 @@ public class HW2 extends JFrame {
         }
 
         if (loggedEmp == null) {
-
-            System.out.println("DEBUG: Could not find employee record for user: " + loggedInUsername);
-            System.out.println("Available Employees in System:");
-            for (EmployeeData e : employeeManager.getAllEmployees()) {
-                System.out.println(" - " + e.getFullName());
-            }
-
             JOptionPane.showMessageDialog(this, "Employee record not found for user: " + loggedInUsername);
             return;
         }
 
-
         int empId = loggedEmp.getEmployeeId();
-
 
         JTextField empIdField = new JTextField();
         empIdField.setEditable(false);
         empIdField.setText(String.valueOf(empId));
         JTextField typeField = new JTextField(10);
 
-
         String[] months = new DateFormatSymbols().getMonths();
         JComboBox<String> startMonth = new JComboBox<>(months);
         JComboBox<Integer> startDay = new JComboBox<>();
         JComboBox<Integer> startYear = new JComboBox<>();
-
         JComboBox<String> endMonth = new JComboBox<>(months);
         JComboBox<Integer> endDay = new JComboBox<>();
         JComboBox<Integer> endYear = new JComboBox<>();
@@ -500,9 +476,10 @@ public class HW2 extends JFrame {
         }
 
         JPanel panel = new JPanel(new GridLayout(0, 2));
-        panel.add(new JLabel("Employee ID:")); panel.add(empIdField);
-        panel.add(new JLabel("Leave Type:")); panel.add(typeField);
-
+        panel.add(new JLabel("Employee ID:"));
+        panel.add(empIdField);
+        panel.add(new JLabel("Leave Type:"));
+        panel.add(typeField);
 
         panel.add(new JLabel("Start Date:"));
         JPanel startPanel = new JPanel();
@@ -523,7 +500,6 @@ public class HW2 extends JFrame {
             try {
                 LeaveService service = new LeaveService();
                 String leaveId = "L" + System.currentTimeMillis();
-
 
                 String startDate = String.format("%04d-%02d-%02d",
                         startYear.getSelectedItem(),
@@ -555,7 +531,6 @@ public class HW2 extends JFrame {
         try {
             LeaveService service = new LeaveService();
             List<LeaveManagement> leaves = service.loadAllLeaves();
-
             String[] columnNames = {"Leave ID", "Employee ID", "Type", "Start", "End", "Status"};
             String[][] data = new String[leaves.size()][6];
 
@@ -579,42 +554,36 @@ public class HW2 extends JFrame {
             if (result == JOptionPane.OK_OPTION) {
                 int row = table.getSelectedRow();
                 if (row == -1) {
-                    JOptionPane.showMessageDialog(this, "Select a leave request first.");
                     showLeaveManagementDialog();
                     return;
                 }
 
                 String leaveId = table.getValueAt(row, 0).toString();
-
                 String[] options = {"Approve", "Reject"};
                 int choice = JOptionPane.showOptionDialog(this, "Choose action", "Leave Action",
                         JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
                 if (choice == 0) {
                     service.approveLeave(leaveId);
-                    JOptionPane.showMessageDialog(this, "Leave approved.");
                     showLeaveManagementDialog();
                 } else if (choice == 1) {
                     service.rejectLeave(leaveId);
-                    JOptionPane.showMessageDialog(this, "Leave rejected.");
                     showLeaveManagementDialog();
                 }
             }
-
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
     private JPanel createEmployeeDashboard() {
-        EmployeeData currentEmp = employeeManager.findByName(loggedInUsername);
+        EmployeeData currentEmp = employeeRepository.findByName(loggedInUsername);
 
         if (currentEmp == null) {
-            List<EmployeeData> allEmps = employeeManager.getAllEmployees();
+            List<EmployeeData> allEmps = employeeRepository.getAllEmployees();
             for (EmployeeData emp : allEmps) {
                 String empName = emp.getFullName().toLowerCase();
                 String loginName = loggedInUsername.toLowerCase();
-
                 if (empName.contains(loginName) || loginName.contains(empName)) {
                     currentEmp = emp;
                     break;
@@ -622,17 +591,7 @@ public class HW2 extends JFrame {
             }
         }
 
-        if (currentEmp == null) {
-            System.out.println("DEBUG: Could not find employee record for user: " + loggedInUsername);
-            System.out.println("Available Employees in System:");
-            for (EmployeeData e : employeeManager.getAllEmployees()) {
-                System.out.println(" - " + e.getFullName());
-            }
-            JOptionPane.showMessageDialog(this, "Employee record not found for user: " + loggedInUsername);
-        }
-
         final EmployeeData finalEmp = currentEmp;
-
         String EmpfullName = (currentEmp != null) ? currentEmp.getFullName() : "User not found";
         String EmpID = (currentEmp != null) ? String.valueOf(currentEmp.getEmployeeId()) : "N/A";
         String EmpPosition = (currentEmp != null) ? currentEmp.getPosition() : "N/A";
@@ -641,7 +600,6 @@ public class HW2 extends JFrame {
         JPanel mainContainer = new JPanel();
         mainContainer.setLayout(new BoxLayout(mainContainer, BoxLayout.Y_AXIS));
         mainContainer.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
-
         mainContainer.add(Box.createRigidArea(new Dimension(0, 30)));
 
         JLabel nameLabel = new JLabel("  Full Name: " + EmpfullName);
@@ -690,9 +648,7 @@ public class HW2 extends JFrame {
         viewDetailsBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         viewDetailsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         viewDetailsBtn.addActionListener(e -> {
-            if (finalEmp != null) {
-                showEmployeeInfoReadOnly(finalEmp);
-            }
+            if (finalEmp != null) showEmployeeInfoReadOnly(finalEmp);
         });
         mainContainer.add(viewDetailsBtn);
 
@@ -717,17 +673,17 @@ public class HW2 extends JFrame {
         fileLeaveBtn.addActionListener(e -> showFileLeaveDialog());
         mainContainer.add(fileLeaveBtn);
 
-    mainContainer.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainContainer.add(Box.createRigidArea(new Dimension(0, 20)));
 
-    JButton viewMyLeavesBtn = new JButton("View My Leave Status");
-    viewMyLeavesBtn.setFocusPainted(false);
-    viewMyLeavesBtn.setFont(new Font("Arial", Font.PLAIN, 15));
-    viewMyLeavesBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-    viewMyLeavesBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-    viewMyLeavesBtn.addActionListener(e -> showMyLeaveStatusDialog());
-    mainContainer.add(viewMyLeavesBtn);
+        JButton viewMyLeavesBtn = new JButton("View My Leave Status");
+        viewMyLeavesBtn.setFocusPainted(false);
+        viewMyLeavesBtn.setFont(new Font("Arial", Font.PLAIN, 15));
+        viewMyLeavesBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        viewMyLeavesBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        viewMyLeavesBtn.addActionListener(e -> showMyLeaveStatusDialog());
+        mainContainer.add(viewMyLeavesBtn);
 
-    mainContainer.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainContainer.add(Box.createRigidArea(new Dimension(0, 20)));
 
         JButton logOutBtn = new JButton("Log Out");
         logOutBtn.setFocusPainted(false);
@@ -744,17 +700,14 @@ public class HW2 extends JFrame {
         return mainContainer;
     }
 
-
     private void showMyLeaveStatusDialog() {
         try {
-            EmployeeData loggedEmp = employeeManager.findByName(loggedInUsername);
-
+            EmployeeData loggedEmp = employeeRepository.findByName(loggedInUsername);
             if (loggedEmp == null) {
-                List<EmployeeData> allEmps = employeeManager.getAllEmployees();
+                List<EmployeeData> allEmps = employeeRepository.getAllEmployees();
                 for (EmployeeData emp : allEmps) {
                     String empName = emp.getFullName().toLowerCase();
                     String loginName = loggedInUsername.toLowerCase();
-
                     if (empName.contains(loginName) || loginName.contains(empName)) {
                         loggedEmp = emp;
                         break;
@@ -763,20 +716,12 @@ public class HW2 extends JFrame {
             }
 
             if (loggedEmp == null) {
-                System.out.println("DEBUG: Could not find employee record for user: " + loggedInUsername);
-                System.out.println("Available Employees in System:");
-                for (EmployeeData e : employeeManager.getAllEmployees()) {
-                    System.out.println(" - " + e.getFullName());
-                }
-                JOptionPane.showMessageDialog(this, "Employee record not found for user: " + loggedInUsername);
                 return;
             }
 
             String empId = String.valueOf(loggedEmp.getEmployeeId());
-
             LeaveService service = new LeaveService();
             List<LeaveManagement> leaves = service.loadAllLeaves();
-
             List<LeaveManagement> myLeaves = new java.util.ArrayList<>();
             for (LeaveManagement l : leaves) {
                 if (l.getEmployeeId().equals(empId)) {
@@ -791,7 +736,6 @@ public class HW2 extends JFrame {
 
             String[] columnNames = {"Leave ID", "Type", "Start", "End", "Status"};
             String[][] data = new String[myLeaves.size()][5];
-
             for (int i = 0; i < myLeaves.size(); i++) {
                 LeaveManagement l = myLeaves.get(i);
                 data[i][0] = l.getLeaveId();
@@ -804,9 +748,7 @@ public class HW2 extends JFrame {
             JTable table = new JTable(data, columnNames);
             JScrollPane scrollPane = new JScrollPane(table);
             scrollPane.setPreferredSize(new Dimension(600, 300));
-
             JOptionPane.showMessageDialog(this, scrollPane, "My Leave Status", JOptionPane.INFORMATION_MESSAGE);
-
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
