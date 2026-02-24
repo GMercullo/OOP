@@ -13,10 +13,23 @@ public class ProbationaryEmployee extends EmployeeData {
     }
 
     @Override
-    protected double getBenefits() {
+    public double calculateNetPay(double regularHours, double overtimeHours) {
+
         CompensationDetails comp = getCompensation();
-        return (comp.getRiceSubsidy()
-                + comp.getPhoneAllowance()
-                + comp.getClothingAllowance()) * 0.5;
+
+        double hourlyRate = comp.getHourlyRate();
+
+        double grossPay =
+                (regularHours * hourlyRate) +
+                        (overtimeHours * hourlyRate * 1.25);
+
+        double benefits = getBenefits();
+
+        double sss = Deductions.calculateSSS(grossPay);
+        double philHealth = Deductions.calculatePhilHealth(grossPay);
+        double pagIbig = Deductions.calculatePagIbig(grossPay);
+        double tax = Deductions.calculateWithholdingTax(grossPay, hourlyRate);
+
+        return grossPay + benefits - (sss + philHealth + pagIbig + tax);
     }
 }

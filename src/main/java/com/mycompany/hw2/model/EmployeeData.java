@@ -111,27 +111,22 @@ public abstract class EmployeeData {
         }
     }
 
-    public final double calculateNetPay(double regularHours, double overtimeHours) {
+    public double calculateNetPay(double regularHours, double overtimeHours) {
+        double hourlyRate = GrossWage.calculateHourlyRate(this.compensation.getBasicSalary());
+        double gross = GrossWage.calculateGross(hourlyRate, regularHours, overtimeHours);
 
-        double grossPay = calculateGrossPay(regularHours, overtimeHours);
+        double sss = Deductions.calculateSSS(gross);
+        double philHealth = Deductions.calculatePhilHealth(gross);
+        double pagIbig = Deductions.calculatePagIbig(gross);
+        double tax = Deductions.calculateWithholdingTax(gross, hourlyRate);
 
-        double benefits = getBenefits();
+        double totalDeductions = sss + philHealth + pagIbig + tax;
 
-        double sss = Deductions.calculateSSS(grossPay);
-        double philHealth = Deductions.calculatePhilHealth(grossPay);
-        double pagIbig = Deductions.calculatePagIbig(grossPay);
-        double tax = Deductions.calculateWithholdingTax(grossPay, getCompensation().getHourlyRate());
-
-        return grossPay + benefits - (sss + philHealth + pagIbig + tax);
+        return gross - totalDeductions + getBenefits();
     }
 
-    protected double calculateGrossPay(double regularHours, double overtimeHours) {
-        double hourlyRate = compensation.getHourlyRate();
-        double regularPay = hourlyRate * regularHours;
-        double overtimePay = hourlyRate * overtimeHours * 1.25;
-        return regularPay + overtimePay;
+    protected double getBenefits() {
+        return 0;
     }
-
-    protected abstract double getBenefits();
 
 }
