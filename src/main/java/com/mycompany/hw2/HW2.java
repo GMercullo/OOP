@@ -79,20 +79,7 @@ public class HW2 extends JFrame {
                 if (role.equalsIgnoreCase("HR")) {
                     showSearchEmployeeDialog();
                 } else {
-                    String input = JOptionPane.showInputDialog(this, "Enter Employee ID:");
-                    if (input != null && !input.trim().isEmpty()) {
-                        try {
-                            int empId = Integer.parseInt(input.trim());
-                            EmployeeData emp = employeeRepository.findById(empId);
-                            if (emp != null) {
-                                showEmployeeDetails(emp);
-                            } else {
-                                JOptionPane.showMessageDialog(this, "Employee not found.");
-                            }
-                        } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(this, "Invalid Employee ID. Please enter a valid number.");
-                        }
-                    }
+                    showSEDWPayrollCalc();
                 }
             });
 
@@ -152,6 +139,23 @@ public class HW2 extends JFrame {
         panel.add(center, BorderLayout.CENTER);
         return panel;
     } // TODO: Implement IT role functionality (02-24-26) - GM
+
+    private void showSEDWPayrollCalc() {
+        String input = JOptionPane.showInputDialog(this, "Enter Employee ID:");
+        if (input != null && !input.trim().isEmpty()) {
+            try {
+                int empId = Integer.parseInt(input.trim());
+                EmployeeData emp = employeeRepository.findById(empId);
+                if (emp != null) {
+                    showEmployeeDetails(emp);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Employee not found.");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid Employee ID. Please enter a valid number.");
+            }
+        }
+    }
 
     private JPanel createAllEmployeePanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
