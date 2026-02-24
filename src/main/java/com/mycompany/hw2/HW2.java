@@ -140,6 +140,8 @@ public class HW2 extends JFrame {
         return panel;
     } // TODO: Implement IT role functionality (02-24-26) - GM
 
+
+    //Shows Employee Details w/ Payroll Calculation (Finance)
     private void showSEDWPayrollCalc() {
         String input = JOptionPane.showInputDialog(this, "Enter Employee ID:");
         if (input != null && !input.trim().isEmpty()) {
