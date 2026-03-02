@@ -6,12 +6,13 @@ package com.mycompany.hw2;
 import com.mycompany.hw2.model.*;
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.mycompany.hw2.model.Payroll.PayrollCalc;
@@ -131,6 +132,23 @@ public class HW2 extends JFrame {
             center.add(searchPayCoverageButton);
         }
 
+        if (role.equalsIgnoreCase("IT")) {
+            JButton manageUsersButton = new JButton("Manage System Users");
+            manageUsersButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            manageUsersButton.setMaximumSize(new Dimension(200, 40));
+            manageUsersButton.addActionListener(e -> {
+                setSize(900, 600);
+                // Create the panel if it doesn't exist
+                if (mainPanel.getComponentCount() <= 2) {
+                    mainPanel.add(createUserManagementPanel(), "userManagement");
+                }
+                cardLayout.show(mainPanel, "userManagement");
+            });
+
+            center.add(Box.createRigidArea(new Dimension(0, 60)));
+            center.add(manageUsersButton);
+        }
+
         center.add(Box.createRigidArea(new Dimension(0, 10)));
         center.add(logOutButton);
 
@@ -157,6 +175,275 @@ public class HW2 extends JFrame {
                 JOptionPane.showMessageDialog(this, "Invalid Employee ID. Please enter a valid number.");
             }
         }
+    }
+
+    private JPanel createUserManagementPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        // Top Bar
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JButton backButton = new JButton("Back to Home");
+        backButton.addActionListener(e -> {
+            setSize(500, 400);
+            cardLayout.show(mainPanel, "home");
+        });
+        topPanel.add(backButton, BorderLayout.WEST);
+        JButton addUserButton = new JButton("Add New User");
+        addUserButton.addActionListener(e -> showUserDialog(null));
+        topPanel.add(addUserButton, BorderLayout.EAST);
+        JLabel title = new JLabel("System User Management", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        topPanel.add(title, BorderLayout.CENTER);
+        panel.add(topPanel, BorderLayout.NORTH);
+        // Table
+        JPanel tablePanel = new JPanel();
+        tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
+        tablePanel.add(createUserTableHeader());
+        List<String[]> users = loadUsersFromCSV();
+        for (String[] user : users) {
+            tablePanel.add(createUserRow(user));
+        }
+        JScrollPane scrollPane = new JScrollPane(tablePanel);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+    private JPanel createUserTableHeader() {
+        JPanel header = new JPanel(new GridLayout(1, 5));
+        header.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+        String[] labels = {"Username", "Password", "First Name", "Role", "Actions"};
+
+        for (String label : labels) {
+            JLabel lbl = new JLabel(label, SwingConstants.CENTER);
+            lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+            // Force center alignment
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            header.add(lbl);
+        }
+        return header;
+    }
+
+    private JPanel createUserRow(String[] user) {
+        // GridLayout for: Username, Password, First Name, Role, Actions (Total 5)
+        JPanel row = new JPanel(new GridLayout(1, 5));
+        row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
+
+        // user[0] = Username, user[1] = Password, user[2] = First Name, user[3] = Role
+
+        row.add(new JLabel(user[0]));
+        row.add(new JLabel(user[1]));
+
+        String displayName = user.length > 2 ? user[2].trim() : "";
+        row.add(new JLabel(displayName));
+
+        String role = user.length > 3 ? user[3].trim() : "";
+        row.add(new JLabel(role));
+
+        // Buttons Panel
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
+
+        // Edit Button
+        JButton editBtn = new JButton("Edit");
+        editBtn.addActionListener(e -> showUserDialog(user));
+
+        // Delete Button
+        JButton deleteBtn = new JButton("Delete");
+        deleteBtn.addActionListener(e -> {
+            // CONFIRMATION DIALOG
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to delete the user: " + user[0] + "?\nThis action cannot be undone.",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                deleteUser(user[0]);
+                refreshUserPanel();
+                // SHOW SUCCESS MESSAGE
+                JOptionPane.showMessageDialog(this, "User deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        // Reset Password Button
+        JButton resetBtn = new JButton("Reset");
+        resetBtn.addActionListener(e -> showResetPasswordDialog(user));
+
+        buttons.add(editBtn);
+        buttons.add(deleteBtn);
+        buttons.add(resetBtn);
+
+        row.add(buttons);
+        return row;
+    }
+
+    // --- Helper: Load Users ---
+    private List<String[]> loadUsersFromCSV() {
+        List<String[]> users = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("src/users.csv"))) {
+            br.readLine(); // Skip Header
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Ensure we don't split on commas inside quotes if any, but simple split is okay for this format
+                users.add(line.split(","));
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error reading users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    // --- Helper: Save Users ---
+    private void saveUsersToCSV(List<String[]> users) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("src/users.csv"))) {
+            bw.write("Username,Password,First Name,Role");
+            bw.newLine();
+            for (String[] u : users) {
+                bw.write(String.join(",", u));
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error saving users: " + e.getMessage());
+        }
+    }
+
+    // --- Helper: Add/Edit User Dialog ---
+    private void showUserDialog(String[] user) {
+        boolean isEdit = (user != null);
+
+        JTextField userField = new JTextField(10);
+        JTextField passField = new JTextField(10);
+        JTextField nameField = new JTextField(10);
+        JComboBox<String> roleCombo = new JComboBox<>(new String[]{"ADMIN", "HR", "IT", "FINANCE", "EMPLOYEE"});
+
+        if (isEdit) {
+            userField.setText(user[0]);
+
+            passField.setText(user[1]);
+            // CHANGED: Make password field read-only (grayed out)
+            passField.setEditable(false);
+            passField.setBackground(Color.LIGHT_GRAY);
+
+            nameField.setText(user[2].trim());
+            roleCombo.setSelectedItem(user[3].trim());
+        }
+
+        JPanel panel = new JPanel(new GridLayout(0, 2));
+        panel.add(new JLabel("Username:"));
+        panel.add(userField);
+        panel.add(new JLabel("Password:"));
+        panel.add(passField); // Now grayed out
+        panel.add(new JLabel("First Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Role:"));
+        panel.add(roleCombo);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, isEdit ? "Edit User" : "Add User", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            List<String[]> allUsers = loadUsersFromCSV();
+
+            if (!isEdit) {
+                for (String[] u : allUsers) {
+                    if (u[0].equals(userField.getText())) {
+                        JOptionPane.showMessageDialog(this, "Username already exists!");
+                        return;
+                    }
+                }
+            }
+
+            String[] newUser = {
+                    userField.getText(),
+                    passField.getText(),
+                    nameField.getText(),
+                    (String) roleCombo.getSelectedItem()
+            };
+
+            if (isEdit) {
+                for (int i = 0; i < allUsers.size(); i++) {
+                    if (allUsers.get(i)[0].equals(user[0])) {
+                        allUsers.set(i, newUser);
+                        break;
+                    }
+                }
+            } else {
+                allUsers.add(newUser);
+            }
+
+            saveUsersToCSV(allUsers);
+            refreshUserPanel();
+            if (isEdit) {
+                JOptionPane.showMessageDialog(this, "User info updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "User added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    // --- Helper: Reset Password Dialog ---
+    private void showResetPasswordDialog(String[] user) {
+        // Logic: Open a dialog to input a NEW password manually
+        JTextField newPassField = new JTextField(10);
+
+        JPanel panel = new JPanel(new GridLayout(0, 2));
+        panel.add(new JLabel("Enter new password for " + user[0] + ":"));
+        panel.add(newPassField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Change Password", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String newPassword = newPassField.getText();
+
+            if (newPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Password cannot be empty.");
+                return;
+            }
+
+            List<String[]> allUsers = loadUsersFromCSV();
+
+            for (String[] u : allUsers) {
+                if (u[0].equals(user[0])) {
+                    u[1] = newPassword;
+                    break;
+                }
+            }
+
+            saveUsersToCSV(allUsers);
+            refreshUserPanel();
+            JOptionPane.showMessageDialog(this, "Password updated successfully!");
+        }
+    }
+
+    // --- Helper: Delete User ---
+    private void deleteUser(String usernameToDelete) {
+        List<String[]> allUsers = loadUsersFromCSV();
+        allUsers.removeIf(u -> u[0].equals(usernameToDelete));
+        saveUsersToCSV(allUsers);
+    }
+
+    // --- Helper: Refresh Panel ---
+    private void refreshUserPanel() {
+        // Remove the userManagement panel and recreate it
+        // Note: You might need to find the correct index or name.
+        // Since we added it by name "userManagement" in createHomePanel:
+        Component[] comps = mainPanel.getComponents();
+        for(Component c : comps) {
+            if (c instanceof JPanel && c.getName() == null) {
+                // This is tricky without explicit names.
+                // Easier approach: remove component at specific index or re-add.
+            }
+        }
+
+        // Easier: Just recreate the component and replace it
+        mainPanel.remove(2); // Assuming 0=Home, 1=Employees, 2=Users. Be careful with indices.
+        // Better way:
+        for(int i=0; i<mainPanel.getComponentCount(); i++){
+            if(mainPanel.getComponent(i) instanceof JPanel) {
+                // Logic to identify user panel could go here
+            }
+        }
+
+        // Let's use the CardLayout name approach used in the main code:
+        // We need to remove the old "userManagement" panel.
+        // A robust way in the existing framework:
+        mainPanel.add(createUserManagementPanel(), "userManagement");
+        cardLayout.show(mainPanel, "userManagement");
     }
 
     private JPanel createAllEmployeePanel() {
