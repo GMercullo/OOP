@@ -15,6 +15,13 @@ public final class CSVHandler {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
 
+    /*
+    Issue: All employee loaded from the CSV are instantiated as RegularEmployee. This ignores the "status" field which my indicate Probationary and Contractual employee.
+    As a result, subclass polymorphismis not fully initialized.
+
+    Please remove comment if resolved.
+    - GM Mercullo (03-05-26)
+     */
     public static EmployeeData parseEmployeeRow(String[] tokens) {
         if (tokens.length < 19) {
             System.out.println("Skipping malformed row: " + String.join(",", tokens));

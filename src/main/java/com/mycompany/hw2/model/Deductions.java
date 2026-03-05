@@ -120,6 +120,12 @@ public class Deductions {
         return monthlySalary * contributionRate;
     }
 
+    /*
+    ISSUE: The method parameter "hourlyRate" is declared but not used in the withholding tax calculation logic.
+
+    Please Remove comment if resolved.
+    - GM Mercullo (03-05-26)
+     */
     public static double calculateWithholdingTax(double monthlySalary, double hourlyRate) {
         double taxableIncome = monthlySalary;
         double calculatedTax = 0;

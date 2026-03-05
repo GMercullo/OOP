@@ -34,6 +34,14 @@ public class LoginFrame extends JFrame {
         loginButton.addActionListener(e -> authenticateUser());
     }
 
+    /*
+    ISSUE: Passwords are currently stored and validated as plain text from users.csv.
+    This approach is not secure and would be unsafe in a production system.
+    Please remove comment if resolved.
+    - GM Mercullo (03-05-26)
+     */
+
+
     private void authenticateUser() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());

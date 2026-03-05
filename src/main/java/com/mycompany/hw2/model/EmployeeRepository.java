@@ -21,6 +21,14 @@ public class EmployeeRepository {
         loadEmployeesFromCSV(filePath);
     }
 
+    /*
+    ISSUE: Employee records are stored in a HashMap using employeeId as the key.
+    If duplicate employee IDs exist in the CSV file, the later record will overwrite the previous one without validation.
+
+    Please remove this comment if resolved
+    - GM Mercullo (03-05-26)
+     */
+
     public void loadEmployeesFromCSV(String filePath) {
         this.filePath = filePath;
         try (CSVReader reader = new CSVReader(new FileReader(filePath))) {
