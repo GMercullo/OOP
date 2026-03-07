@@ -8,13 +8,16 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class Attendance {
     // Default constructor
     public Attendance() {
-        // No state initialization required
+        // No state initialization required..
     }
 
     private static final String ATTENDANCE_CSV_FILE = "src/MotorPH Employee Data - Attendance Record.csv";
