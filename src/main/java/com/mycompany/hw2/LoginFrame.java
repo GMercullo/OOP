@@ -37,7 +37,7 @@ public class LoginFrame extends JFrame {
     /*
     ISSUE: Passwords are currently stored and validated as plain text from users.csv.
     This approach is not secure and would be unsafe in a production system.
-    Please remove comment if resolved.
+    Please remove comment if resolved.®
     - GM Mercullo (03-05-26)
      */
 

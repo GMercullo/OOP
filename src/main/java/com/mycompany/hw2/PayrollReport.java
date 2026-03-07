@@ -1,4 +1,4 @@
-package com.mycompany.hw2.model;
+package com.mycompany.hw2;
 
 import javax.swing.*;
 import java.awt.*;

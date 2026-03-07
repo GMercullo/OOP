@@ -1,5 +1,7 @@
 package com.mycompany.hw2.model;
 
+import com.mycompany.hw2.PayrollReport;
+
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;

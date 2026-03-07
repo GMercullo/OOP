@@ -9,7 +9,15 @@ public class LeaveService {
     private static final String FILE_PATH = "leaves.csv";
 
     public void fileLeave(LeaveManagement leave) throws IOException {
+        File file = new File(FILE_PATH);
+        boolean fileExists = file.exists();
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+
+            if (!fileExists) {
+                writer.write("LeaveID,EmployeeID,Type,StartDate,EndDate,Status");
+                writer.newLine();
+            }
 
             writer.write(leave.getLeaveId() + "," +
                     leave.getEmployeeId() + "," +
@@ -28,7 +36,14 @@ public class LeaveService {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
+            boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {
+
+                if (isFirstLine && line.startsWith("LeaveID")) {
+                    isFirstLine = false;
+                    continue;
+                }
+                isFirstLine = false;
 
                 if (line.trim().isEmpty()) {
                     continue;
@@ -64,6 +79,26 @@ public class LeaveService {
         return leaves;
     }
 
+    public void saveAllLeaves(List<LeaveManagement> leaves) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+
+            writer.write("LeaveID,EmployeeID,Type,StartDate,EndDate,Status");
+            writer.newLine();
+
+            for (LeaveManagement leave : leaves) {
+                writer.write(
+                        leave.getLeaveId() + "," +
+                        leave.getEmployeeId() + "," +
+                        leave.getLeaveType() + "," +
+                        leave.getStartDate() + "," +
+                        leave.getEndDate() + "," +
+                        leave.getStatus()
+                );
+                writer.newLine();
+            }
+        }
+    }
+
     public void approveLeave(String leaveId) throws IOException {
         updateLeaveStatus(leaveId, LeaveManagement.LeaveStatus.APPROVED);
     }
@@ -78,6 +113,10 @@ public class LeaveService {
 
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+
+            writer.write("LeaveID,EmployeeID,Type,StartDate,EndDate,Status");
+            writer.newLine();
+
             for (LeaveManagement leave : leaves) {
 
                 if (leave.getLeaveId().equals(leaveId)) {

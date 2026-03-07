@@ -962,7 +962,73 @@ public class HW2 extends JFrame {
             JScrollPane scrollPane = new JScrollPane(table);
             scrollPane.setPreferredSize(new Dimension(700, 300));
 
-            JOptionPane.showMessageDialog(this, scrollPane, "Leave Requests", JOptionPane.INFORMATION_MESSAGE);
+            JButton approveBtn = new JButton("Approve");
+            JButton rejectBtn = new JButton("Reject");
+
+            approveBtn.addActionListener(e -> {
+                int row = table.getSelectedRow();
+                if (row == -1) {
+                    JOptionPane.showMessageDialog(this, "Please select a leave request first.");
+                    return;
+                }
+
+                LeaveManagement selected = leaves.get(row);
+
+                if (!selected.getStatus().toString().equalsIgnoreCase("PENDING")) {
+                    JOptionPane.showMessageDialog(this, "This leave request has already been processed.");
+                    return;
+                }
+
+                selected.approveLeave();
+
+                try {
+                    service.saveAllLeaves(leaves);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
+                }
+
+                table.setValueAt(selected.getStatus().toString(), row, 5);
+
+                JOptionPane.showMessageDialog(this, "Leave approved and saved.");
+            });
+
+            rejectBtn.addActionListener(e -> {
+                int row = table.getSelectedRow();
+                if (row == -1) {
+                    JOptionPane.showMessageDialog(this, "Please select a leave request first.");
+                    return;
+                }
+
+                LeaveManagement selected = leaves.get(row);
+
+                if (!selected.getStatus().toString().equalsIgnoreCase("PENDING")) {
+                    JOptionPane.showMessageDialog(this, "This leave request has already been processed.");
+                    return;
+                }
+
+                selected.rejectLeave();
+
+                try {
+                    service.saveAllLeaves(leaves);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
+                }
+
+                table.setValueAt(selected.getStatus().toString(), row, 5);
+
+                JOptionPane.showMessageDialog(this, "Leave rejected and saved.");
+            });
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.add(approveBtn);
+            buttonPanel.add(rejectBtn);
+
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.add(scrollPane, BorderLayout.CENTER);
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+            JOptionPane.showMessageDialog(this, mainPanel, "Leave Requests", JOptionPane.PLAIN_MESSAGE);
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }

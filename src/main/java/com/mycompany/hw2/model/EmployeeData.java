@@ -51,6 +51,11 @@ public abstract class EmployeeData {
 
     public GovernmentDetails getGovernmentDetails() { return governmentDetails; }
 
+    public double calculateNetPay(double regularHours) {
+        return calculateNetPay(regularHours, 0);
+    }
+
+
     public void setFirstName(String firstName) {
         if (firstName != null && !firstName.trim().isEmpty()) {
             this.firstName = firstName;
