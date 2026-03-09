@@ -14,8 +14,8 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import com.mycompany.hw2.model.*;
 
-import static com.mycompany.hw2.model.Payroll.PayrollCalc;
 
 public class HW2 extends JFrame {
 
@@ -611,7 +611,7 @@ public class HW2 extends JFrame {
             int year = (int) yearCombo.getSelectedItem();
             String monthFormatted = String.format("%02d-%d", monthIndex, year);
             if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
-                PayrollCalc(emp, monthFormatted);
+                Payroll.PayrollCalc(emp, monthFormatted);
             } else {
                 JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
             }
@@ -724,7 +724,7 @@ public class HW2 extends JFrame {
                 String monthFormatted = String.format("%02d-%d", monthIndex, year);
 
                 if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
-                    PayrollCalc(emp, monthFormatted);
+                    Payroll.PayrollCalc(emp, monthFormatted);
                 } else {
                     JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
                 }
