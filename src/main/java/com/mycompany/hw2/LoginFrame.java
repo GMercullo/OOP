@@ -55,18 +55,19 @@ public class LoginFrame extends JFrame {
             if (role != null) {
 
                 if (role.equalsIgnoreCase("ADMIN") ||
+
                         role.equalsIgnoreCase("HR") ||
                         role.equalsIgnoreCase("FINANCE") ||
                         role.equalsIgnoreCase("IT")) {
 
                     int choice = JOptionPane.showOptionDialog(
                             this,
-                            "Login as Administrative role or employee?",
+                            "Logging in as",
                             "Access Mode",
                             JOptionPane.DEFAULT_OPTION,
                             JOptionPane.QUESTION_MESSAGE,
                             null,
-                            new String[]{"Administrative Role", "Employee"},
+                            new String[]{"Admin", "Employee"},
                             "Administrative Role"
                     );
 
