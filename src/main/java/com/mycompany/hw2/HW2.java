@@ -72,6 +72,18 @@ public class HW2 extends JFrame {
             new LoginFrame().setVisible(true);
         });
 
+        if (role.equalsIgnoreCase("Admin")) {
+            /*Functions that should be included:
+            View System Users
+            Created, Update, Delete (CRUD) user account
+            Reset Password
+            Assign Roles
+
+            - GM Mercullo (03-09-26)
+             */
+
+        }
+
         if (role.equalsIgnoreCase("HR") || role.equalsIgnoreCase("FINANCE")) {
             JButton searchByIdButton = new JButton("Search Employee");
             searchByIdButton.setAlignmentX(Component.CENTER_ALIGNMENT);
