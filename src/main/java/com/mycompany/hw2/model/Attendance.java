@@ -31,13 +31,13 @@ public class Attendance {
     // Returns total regular hours worked by the employee within a date range
     public double getTotalRegularHours(int employeeId, LocalDate start, LocalDate end) {
         HoursWorked hours = calculateHours(employeeId, start, end);
-        return hours.getRegularHours();
+        return hours.regularHours;
     }
 
     // Returns total overtime hours worked by the employee within a date range
     public double getTotalOvertimeHours(int employeeId, LocalDate start, LocalDate end) {
         HoursWorked hours = calculateHours(employeeId, start, end);
-        return hours.getOvertimeHours();
+        return hours.overtimeHours;
     }
 
     // Returns the months (MM-yyyy) where the employee has attendance records
@@ -189,14 +189,6 @@ public class Attendance {
         public HoursWorked(double regularHours, double overtimeHours) {
             this.regularHours = regularHours;
             this.overtimeHours = overtimeHours;
-        }
-
-        public double getRegularHours() {
-            return regularHours;
-        }
-
-        public double getOvertimeHours() {
-            return overtimeHours;
         }
     }
 }

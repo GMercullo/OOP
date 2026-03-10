@@ -85,16 +85,16 @@ public class LoginFrame extends JFrame {
                     // If the user selects "Admin", open the system using their real role.
                     if (choice == 0) {
                         // User proceeds with their administrative role
-                        AuditService.log(role, "LOGIN", employeeId + ",ADMIN MODE");
+                        AuditService.log(role, "LOGIN", "ADMIN MODE," + employeeId );
                         new HW2(role, username).setVisible(true);
                     } else {
                         // User chooses to access the system as a normal employee
-                        AuditService.log(role, "LOGIN", employeeId + ",EMPLOYEE MODE");
+                        AuditService.log(role, "LOGIN", "EMPLOYEE MODE," + employeeId );
                         new HW2("EMPLOYEE", username).setVisible(true);
                     }
 
                 } else {
-                    AuditService.log(role, "LOGIN", employeeId + ",EMPLOYEE MODE");
+                    AuditService.log(role, "LOGIN", "EMPLOYEE MODE," + employeeId);
                     new HW2(role, username).setVisible(true);
                 }
 

@@ -250,8 +250,8 @@ public class HW2 extends JFrame {
         String displayName = user.length > 2 ? user[2].trim() : "";
         row.add(new JLabel(displayName));
 
-        String role = user.length > 3 ? user[3].trim() : "";
-        row.add(new JLabel(role));
+        String userRole = user.length > 3 ? user[3].trim() : "";
+        row.add(new JLabel(userRole));
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
 
@@ -271,7 +271,7 @@ public class HW2 extends JFrame {
 
                 refreshUserPanel();
 
-                AuditService.log(role, "DELETE USER", loggedInUsername);
+                AuditService.log(this.role, "DELETE USER", loggedInUsername);
 
                 JOptionPane.showMessageDialog(this, "User deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
@@ -465,6 +465,7 @@ public class HW2 extends JFrame {
             EmployeeData newEmp = dialog.getNewEmployee();
             if (newEmp != null) {
                 employeeRepository.addEmployee(newEmp);
+                AuditService.log(role, "CREATE EMPLOYEE,HR MODE", loggedInUsername);
                 try {
                     CSVHandler.appendEmployeeToCSV("src/MotorPH Employee Data - Employee Details.csv", newEmp);
                 } catch (IOException ex) {
@@ -535,6 +536,7 @@ public class HW2 extends JFrame {
             EmployeeData updated = dialog.getNewEmployee();
             if (updated != null) {
                 employeeRepository.updateEmployee(updated.getEmployeeId(), updated);
+                AuditService.log(role, "UPDATE EMPLOYEE,HR MODE",  loggedInUsername);
                 JOptionPane.showMessageDialog(this, "Employee updated!");
                 refreshAllEmployeePanel();
             }
@@ -545,6 +547,7 @@ public class HW2 extends JFrame {
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 employeeRepository.deleteEmployee(emp.getEmployeeId());
+                AuditService.log(role, "DELETE EMPLOYEE,HR MODE", loggedInUsername);
                 JOptionPane.showMessageDialog(this, "Employee deleted!");
                 refreshAllEmployeePanel();
             }
@@ -631,7 +634,7 @@ public class HW2 extends JFrame {
             String monthFormatted = String.format("%02d-%d", monthIndex, year);
             if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
                 Payroll.PayrollCalc(emp, monthFormatted);
-                AuditService.log(role, "CALCULATE PAYROLL", loggedInUsername);
+                AuditService.log(role, "CALCULATE PAYROLL,EMPLOYEE MODE", loggedInUsername);
             } else {
                 JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
             }
@@ -966,7 +969,7 @@ public class HW2 extends JFrame {
 
                 service.fileLeave(leave);
 
-                AuditService.log(role, "FILE LEAVE", loggedInUsername);
+                AuditService.log(role, "FILE LEAVE", "EMPLOYEE MODE," + loggedInUsername);
 
                 JOptionPane.showMessageDialog(this, "Leave filed successfully!");
             }
@@ -1018,7 +1021,7 @@ public class HW2 extends JFrame {
 
                 try {
                     service.saveAllLeaves(leaves);
-                    AuditService.log(role, "APPROVE LEAVE", loggedInUsername);
+                    AuditService.log(role, "APPROVE LEAVE", "HR MODE," + loggedInUsername);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
                 }
@@ -1047,7 +1050,7 @@ public class HW2 extends JFrame {
                 try {
                     service.saveAllLeaves(leaves);
 
-                    AuditService.log(role, "REJECT LEAVE", loggedInUsername);
+                    AuditService.log(role, "REJECT LEAVE", "HR MODE," + loggedInUsername);
 
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
@@ -1161,9 +1164,8 @@ public class HW2 extends JFrame {
                 data[i][0] = parts.length > 0 ? parts[0] : ""; // Timestamp
                 data[i][1] = parts.length > 1 ? parts[1] : ""; // Role
                 data[i][2] = parts.length > 2 ? parts[2] : ""; // Action
-                // Swap the last two columns (employee and access mode)
-                data[i][3] = parts.length > 4 ? parts[4] : ""; // Employee
-                data[i][4] = parts.length > 3 ? parts[3] : ""; // Access Mode
+                data[i][3] = parts.length > 3 ? parts[3] : ""; // Access Mode
+                data[i][4] = parts.length > 4 ? parts[4] : ""; // Employee
             }
 
             JTable table = new JTable(data, columnNames);

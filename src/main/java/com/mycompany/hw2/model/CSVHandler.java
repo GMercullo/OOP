@@ -23,8 +23,9 @@ public final class CSVHandler {
     - GM Mercullo (03-05-26)
      */
     public static EmployeeData parseEmployeeRow(String[] tokens) {
-        if (tokens.length < 19) {
-            System.out.println("Skipping malformed row: " + String.join(",", tokens));
+        if (tokens == null || tokens.length < 19) {
+            System.err.println("[CSVHandler] Malformed employee row detected. Expected 19 columns but found: "
+                    + (tokens == null ? 0 : tokens.length));
             return null;
         }
 
@@ -192,34 +193,40 @@ public final class CSVHandler {
     }
 
     public static double parseDouble(String input) {
+        if (isEmpty(input)) {
+            System.err.println("[CSVHandler] Empty numeric value detected, defaulting to 0.0");
+            return 0.0;
+        }
         try {
             return Double.parseDouble(input.replace(",", "").trim());
         } catch (NumberFormatException e) {
-            System.out.println("Failed to parse double from: '" + input + "', defaulting to 0.0");
+            System.err.println("[CSVHandler] Failed to parse double from: '" + input + "', defaulting to 0.0");
             return 0.0;
         }
     }
 
     public static int parseInt(String str) {
         if (isEmpty(str)) {
-            return logParseError("int", str, 0);
+            System.err.println("[CSVHandler] Empty integer value detected, defaulting to 0");
+            return 0;
         }
         try {
             return Integer.parseInt(str.trim());
         } catch (NumberFormatException e) {
-            return logParseError("int", str, 0);
+            System.err.println("[CSVHandler] Failed to parse integer from: '" + str + "', defaulting to 0");
+            return 0;
         }
     }
 
     public static Date parseDate(String dateStr) {
         if (isEmpty(dateStr)) {
-            System.out.println("Empty or null date string, returning null");
+            System.err.println("[CSVHandler] Empty birthdate field detected.");
             return null;
         }
         try {
             return DATE_FORMAT.parse(dateStr.trim());
         } catch (ParseException e) {
-            System.out.println("Failed to parse date from: '" + dateStr + "', returning null");
+            System.err.println("[CSVHandler] Invalid date format: '" + dateStr + "'. Expected MM/dd/yyyy.");
             return null;
         }
     }
@@ -228,8 +235,4 @@ public final class CSVHandler {
         return str == null || str.trim().isEmpty();
     }
 
-    private static <T> T logParseError(String type, String input, T defaultValue) {
-        System.out.println("Failed to parse " + type + " from: '" + input + "', defaulting to " + defaultValue);
-        return defaultValue;
-    }
 }
