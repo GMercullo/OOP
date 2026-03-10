@@ -14,12 +14,14 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.opencsv.CSVReader;
+import com.mycompany.hw2.model.AuditService;
 
 public class LoginFrame extends JFrame {
 
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
+    private String employeeId;
 
     private static final String LOGIN_CSV = "src/users.csv";
 
@@ -54,12 +56,21 @@ public class LoginFrame extends JFrame {
 
             if (role != null) {
 
+                /* If the authenticated user has an administrative-type role,
+                 allow them to choose how they want to access the system.
+                 They can either log in using their administrative privileges
+                 (Admin / HR / Finance / IT dashboards) or switch to a normal
+                 employee view to access employee features like viewing payslips
+                or filing leave as a regular employee.*/
                 if (role.equalsIgnoreCase("ADMIN") ||
 
                         role.equalsIgnoreCase("HR") ||
                         role.equalsIgnoreCase("FINANCE") ||
                         role.equalsIgnoreCase("IT")) {
 
+                    /* Show a dialog asking the user which access mode they want to use.
+                    Option 1 = Administrative access (use their assigned role).
+                    Option 2 = Employee access (override role to EMPLOYEE).*/
                     int choice = JOptionPane.showOptionDialog(
                             this,
                             "Logging in as",
@@ -71,14 +82,19 @@ public class LoginFrame extends JFrame {
                             "Administrative Role"
                     );
 
+                    // If the user selects "Admin", open the system using their real role.
                     if (choice == 0) {
+                        // User proceeds with their administrative role
+                        AuditService.log(role, "LOGIN", employeeId + ",ADMIN MODE");
                         new HW2(role, username).setVisible(true);
                     } else {
+                        // User chooses to access the system as a normal employee
+                        AuditService.log(role, "LOGIN", employeeId + ",EMPLOYEE MODE");
                         new HW2("EMPLOYEE", username).setVisible(true);
                     }
 
                 } else {
-
+                    AuditService.log(role, "LOGIN", employeeId + ",EMPLOYEE MODE");
                     new HW2(role, username).setVisible(true);
                 }
 
@@ -115,7 +131,9 @@ public class LoginFrame extends JFrame {
                         line[0].trim().equalsIgnoreCase(username) &&
                         line[1].trim().equals(password)) {
 
-                    return line[3].trim().toUpperCase();
+                    employeeId = line[2].trim();
+                    String userRole = line[3].trim().toUpperCase();
+                    return userRole;
                 }
             }
 

@@ -14,7 +14,6 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
-import com.mycompany.hw2.model.*;
 
 
 public class HW2 extends JFrame {
@@ -159,6 +158,15 @@ public class HW2 extends JFrame {
 
             center.add(Box.createRigidArea(new Dimension(0, 60)));
             center.add(manageUsersButton);
+
+            // View Audit Logs button
+            JButton viewAuditLogsButton = new JButton("View Audit Logs");
+            viewAuditLogsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            viewAuditLogsButton.setMaximumSize(new Dimension(200, 40));
+            viewAuditLogsButton.addActionListener(e -> showAuditLogDialog());
+
+            center.add(Box.createRigidArea(new Dimension(0, 10)));
+            center.add(viewAuditLogsButton);
         }
 
         center.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -216,6 +224,7 @@ public class HW2 extends JFrame {
         panel.add(scrollPane, BorderLayout.CENTER);
         return panel;
     }
+
     private JPanel createUserTableHeader() {
         JPanel header = new JPanel(new GridLayout(1, 5));
         header.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
@@ -259,7 +268,11 @@ public class HW2 extends JFrame {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 deleteUser(user[0]);
+
                 refreshUserPanel();
+
+                AuditService.log(role, "DELETE USER", loggedInUsername);
+
                 JOptionPane.showMessageDialog(this, "User deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         });
@@ -364,6 +377,9 @@ public class HW2 extends JFrame {
 
             saveUsersToCSV(allUsers);
             refreshUserPanel();
+
+            AuditService.log(role, isEdit ? "UPDATE USER" : "CREATE USER", loggedInUsername);
+
             if (isEdit) {
                 JOptionPane.showMessageDialog(this, "User info updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -400,6 +416,9 @@ public class HW2 extends JFrame {
 
             saveUsersToCSV(allUsers);
             refreshUserPanel();
+
+            AuditService.log(role, "RESET PASSWORD", loggedInUsername);
+
             JOptionPane.showMessageDialog(this, "Password updated successfully!");
         }
     }
@@ -412,14 +431,14 @@ public class HW2 extends JFrame {
 
     private void refreshUserPanel() {
         Component[] comps = mainPanel.getComponents();
-        for(Component c : comps) {
+        for (Component c : comps) {
             if (c instanceof JPanel && c.getName() == null) {
             }
         }
 
         mainPanel.remove(2);
-        for(int i=0; i<mainPanel.getComponentCount(); i++){
-            if(mainPanel.getComponent(i) instanceof JPanel) {
+        for (int i = 0; i < mainPanel.getComponentCount(); i++) {
+            if (mainPanel.getComponent(i) instanceof JPanel) {
             }
         }
 
@@ -612,6 +631,7 @@ public class HW2 extends JFrame {
             String monthFormatted = String.format("%02d-%d", monthIndex, year);
             if (new Attendance().hasAttendanceForMonth(emp.getEmployeeId(), monthFormatted)) {
                 Payroll.PayrollCalc(emp, monthFormatted);
+                AuditService.log(role, "CALCULATE PAYROLL", loggedInUsername);
             } else {
                 JOptionPane.showMessageDialog(this, "No attendance records found for " + monthFormatted);
             }
@@ -730,7 +750,7 @@ public class HW2 extends JFrame {
                 }
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid employee ID. Please enter a valin number.");
+            JOptionPane.showMessageDialog(this, "Invalid employee ID. Please enter a valid number.");
         }
     }
 
@@ -945,6 +965,9 @@ public class HW2 extends JFrame {
                 );
 
                 service.fileLeave(leave);
+
+                AuditService.log(role, "FILE LEAVE", loggedInUsername);
+
                 JOptionPane.showMessageDialog(this, "Leave filed successfully!");
             }
         } catch (Exception ex) {
@@ -995,6 +1018,7 @@ public class HW2 extends JFrame {
 
                 try {
                     service.saveAllLeaves(leaves);
+                    AuditService.log(role, "APPROVE LEAVE", loggedInUsername);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
                 }
@@ -1022,6 +1046,9 @@ public class HW2 extends JFrame {
 
                 try {
                     service.saveAllLeaves(leaves);
+
+                    AuditService.log(role, "REJECT LEAVE", loggedInUsername);
+
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Error saving leave updates: " + ex.getMessage());
                 }
@@ -1106,4 +1133,49 @@ public class HW2 extends JFrame {
         }
     }
 
+    // GUI dialog for IT to view audit logs
+    private void showAuditLogDialog() {
+        File logFile = new File("audit_log.csv");
+
+        if (!logFile.exists()) {
+            JOptionPane.showMessageDialog(this, "Audit log file not found.");
+            return;
+        }
+
+        try {
+            List<String> logs = new ArrayList<>();
+
+            try (BufferedReader br = new BufferedReader(new FileReader(logFile))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    logs.add(line);
+                }
+            }
+
+            String[] columnNames = {"Timestamp", "Role", "Action", "Access Mode", "Employee"};
+            String[][] data = new String[logs.size()][5];
+
+            for (int i = 0; i < logs.size(); i++) {
+                String[] parts = logs.get(i).split(",", 5);
+
+                data[i][0] = parts.length > 0 ? parts[0] : ""; // Timestamp
+                data[i][1] = parts.length > 1 ? parts[1] : ""; // Role
+                data[i][2] = parts.length > 2 ? parts[2] : ""; // Action
+                // Swap the last two columns (employee and access mode)
+                data[i][3] = parts.length > 4 ? parts[4] : ""; // Employee
+                data[i][4] = parts.length > 3 ? parts[3] : ""; // Access Mode
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            scrollPane.setPreferredSize(new Dimension(1000, 500));
+
+            JOptionPane.showMessageDialog(this, scrollPane, "Audit Logs", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error reading audit logs: " + e.getMessage());
+        }
+    }
+
 }
+
