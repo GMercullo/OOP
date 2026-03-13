@@ -15,64 +15,6 @@ public class Payroll {
     private static final DecimalFormat hoursFormat = new DecimalFormat("#0.##");
     private static final DecimalFormat money = new DecimalFormat("\u20b1#,##0.00");
 
-    /*public static void processMonthlyPayroll(EmployeeRepository repository, int year, int month) {
-        LocalDate start = LocalDate.of(year, month, 1);
-        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
-        Attendance attendance = new Attendance();
-
-        for (EmployeeData emp : repository.getAllEmployees()) {
-            Attendance.HoursWorked hours = attendance.calculateHours(emp.getEmployeeId(), start, end);
-
-            double net = emp.calculateNetPay(hours.getRegularHours(), hours.getOvertimeHours());
-
-            double hourlyRate = GrossWage.calculateHourlyRate(emp.getCompensation().getBasicSalary());
-            double gross = GrossWage.calculateGross(hourlyRate, hours.getRegularHours(), hours.getOvertimeHours());
-
-            double sss = Deductions.calculateSSS(gross);
-            double phil = Deductions.calculatePhilHealth(gross);
-            double pagibig = Deductions.calculatePagIbig(gross);
-            double tax = Deductions.calculateWithholdingTax(emp.getCompensation().getBasicSalary(), hourlyRate);
-
-            PayrollReport reportPanel = new PayrollReport();
-            reportPanel.setValue("Employee #:", String.valueOf(emp.getEmployeeId()));
-            reportPanel.setValue("Last Name:", emp.getLastName());
-            reportPanel.setValue("First Name:", emp.getFirstName());
-            reportPanel.setValue("Birth Date:", new SimpleDateFormat("MM/dd/yyyy").format(emp.getBirthDate()));
-            reportPanel.setValue("Address:", emp.getAddress());
-            reportPanel.setValue("Phone #:", emp.getPhoneNumber());
-            reportPanel.setValue("Position:", emp.getPosition());
-            reportPanel.setValue("Status:", emp.getStatus());
-            reportPanel.setValue("Supervisor:", emp.getSupervisor());
-
-            reportPanel.setValue("SSS #:", emp.getGovernmentDetails().getSssNumber());
-            reportPanel.setValue("PhilHealth #:", emp.getGovernmentDetails().getPhilHealthNumber());
-            reportPanel.setValue("TIN #:", emp.getGovernmentDetails().getTinNumber());
-            reportPanel.setValue("Pag-IBIG #:", emp.getGovernmentDetails().getPagIbigNumber());
-
-            reportPanel.setValue("Basic Salary:", String.format("%.2f", emp.getCompensation().getBasicSalary()));
-            reportPanel.setValue("Rice Subsidy:", String.format("%.2f", emp.getCompensation().getRiceSubsidy()));
-            reportPanel.setValue("Phone Subsidy:", String.format("%.2f", emp.getCompensation().getPhoneAllowance()));
-            reportPanel.setValue("Clothing Allowance:", String.format("%.2f", emp.getCompensation().getClothingAllowance()));
-
-            reportPanel.setValue("Gross Semi-Monthly Salary:", String.format("%.2f", emp.getCompensation().getGrossSemiMonthlyRate()));
-            reportPanel.setValue("Hourly Rate:", String.format("%.2f", hourlyRate));
-            reportPanel.setValue("Month:", start.getMonth().toString() + " " + year);
-
-            reportPanel.setValue("Regular Hours:", String.format("%.2f", hours.getRegularHours()));
-            reportPanel.setValue("Overtime Hours:", String.format("%.2f", hours.getOvertimeHours()));
-            reportPanel.setValue("Gross Salary:", String.format("%.2f", gross));
-
-            reportPanel.setValue("SSS Deduction:", String.format("%.2f", sss));
-            reportPanel.setValue("PhilHealth Deduction:", String.format("%.2f", phil));
-            reportPanel.setValue("Pag-IBIG Deduction:", String.format("%.2f", pagibig));
-            reportPanel.setValue("Withholding Tax:", String.format("%.2f", tax));
-
-            reportPanel.setValue("Net Salary:", String.format("%.2f", net));
-
-            HW2.displayPayrollReport(reportPanel);
-        }
-    } Note: Not use */
-
     public static void PayrollCalc(EmployeeData empData, String monthInput) {
         try {
             DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
