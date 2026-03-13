@@ -13,8 +13,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import com.opencsv.CSVReader;
 import com.mycompany.hw2.model.AuditService;
+import com.opencsv.CSVReader;
 
 public class LoginFrame extends JFrame {
 

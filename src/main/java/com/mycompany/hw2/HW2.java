@@ -72,14 +72,22 @@ public class HW2 extends JFrame {
         });
 
         if (role.equalsIgnoreCase("Admin")) {
-            /*Functions that should be included:
-            View System Users
-            Created, Update, Delete (CRUD) user account
-            Reset Password
-            Assign Roles
 
-            - GM Mercullo (03-09-26)
-             */
+            JButton manageUsersButton = new JButton("View System Users");
+            manageUsersButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            manageUsersButton.setMaximumSize(new Dimension(200, 40));
+            manageUsersButton.addActionListener(e -> {
+                setSize(900, 600);
+
+                if (mainPanel.getComponentCount() <= 2) {
+                    mainPanel.add(createUserManagementPanel(), "userManagement");
+                }
+
+                cardLayout.show(mainPanel, "userManagement");
+            });
+
+            center.add(Box.createRigidArea(new Dimension(0, 60)));
+            center.add(manageUsersButton);
 
         }
 
