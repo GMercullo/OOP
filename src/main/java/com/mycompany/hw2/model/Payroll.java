@@ -85,7 +85,15 @@ public class Payroll {
             double regularHours = attendance.getTotalRegularHours(empData.getEmployeeId(), start, end);
             double overtimeHours = attendance.getTotalOvertimeHours(empData.getEmployeeId(), start, end);
 
-            double net = empData.calculateNetPay(regularHours, overtimeHours);
+            double hourlyRate = GrossWage.calculateHourlyRate(empData.getCompensation().getBasicSalary());
+            double grossSalary = GrossWage.calculateGross(hourlyRate, regularHours, overtimeHours);
+
+            double sss = Deductions.calculateSSS(grossSalary);
+            double philHealth = Deductions.calculatePhilHealth(grossSalary);
+            double pagIbig = Deductions.calculatePagIbig(grossSalary);
+            double tax = Deductions.calculateWithholdingTax(grossSalary, hourlyRate);
+
+            double net = grossSalary - (sss + philHealth + pagIbig + tax);
 
             PayrollReport summary = new PayrollReport();
             summary.setValue("Employee #:", String.valueOf(empData.getEmployeeId()));
@@ -112,6 +120,14 @@ public class Payroll {
 
             summary.setValue("Regular Hours:", hoursFormat.format(regularHours));
             summary.setValue("Overtime Hours:", hoursFormat.format(overtimeHours));
+
+            summary.setValue("Hourly Rate:", money.format(hourlyRate));
+            summary.setValue("Gross Salary:", money.format(grossSalary));
+
+            summary.setValue("SSS Deduction:", money.format(sss));
+            summary.setValue("PhilHealth Deduction:", money.format(philHealth));
+            summary.setValue("Pag-IBIG Deduction:", money.format(pagIbig));
+            summary.setValue("Withholding Tax:", money.format(tax));
 
             summary.setValue("Net Salary:", money.format(net));
 
