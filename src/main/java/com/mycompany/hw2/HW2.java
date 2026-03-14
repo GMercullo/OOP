@@ -354,6 +354,33 @@ public class HW2 extends JFrame {
 
         int result = JOptionPane.showConfirmDialog(this, panel, isEdit ? "Edit User" : "Add User", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
+
+            String username = userField.getText().trim();
+            String password = passField.getText().trim();
+            String firstName = nameField.getText().trim();
+
+            // REQUIRED FIELD VALIDATION
+            if (username.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Username is required.");
+                return;
+            }
+
+            if (!isEdit && password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Password is required.");
+                return;
+            }
+
+            if (firstName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "First Name is required.");
+                return;
+            }
+
+            // CHECK IF FIRST NAME HAS NUMBERS
+            if (!firstName.matches("[a-zA-Z ]+")) {
+                JOptionPane.showMessageDialog(this, "First Name must not contain numbers.");
+                return;
+            }
+
             List<String[]> allUsers = loadUsersFromCSV();
 
             if (!isEdit) {
@@ -366,9 +393,9 @@ public class HW2 extends JFrame {
             }
 
             String[] newUser = {
-                    userField.getText(),
-                    passField.getText(),
-                    nameField.getText(),
+                    username,
+                    password,
+                    firstName,
                     (String) roleCombo.getSelectedItem()
             };
 
