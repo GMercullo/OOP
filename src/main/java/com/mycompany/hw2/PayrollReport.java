@@ -8,9 +8,9 @@ import java.util.Map;
 /**
  * A Swing panel that displays a detailed payroll report for an employee,
  * including personal info, salary breakdown, hours worked, and deductions.
- *
+ * <p>
  * Used in conjunction with PayrollService() in HW2.
- *
+ * <p>
  * Author: gmmercullo
  */
 public class PayrollReport extends JPanel {
